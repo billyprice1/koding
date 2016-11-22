@@ -5,11 +5,17 @@ SCRIPTS_DIR=$WERCKER_ROOT/scripts
 set -o errexit
 
 BRANCH=${BRANCH:-$WERCKER_GIT_BRANCH}
-INSTANCE_OPTIONS=$($SCRIPTS_DIR/test-instance/get-options)
-INSTANCE_OPTIONS="--branch-name $BRANCH $INSTANCE_OPTIONS"
-echo $INSTANCE_OPTIONS
+REVISION=${REVISION:-$WERCKER_GIT_COMMIT}
 
-$SCRIPTS_DIR/test-instance/launch $INSTANCE_OPTIONS > INSTANCE_DATA
-cat INSTANCE_DATA
+function create_old_stack() {
+  declare options=$($SCRIPTS_DIR/test-instance/get-options)
+  options="--branch-name $BRANCH $options"
+  echo $options
+
+  $SCRIPTS_DIR/test-instance/launch $options > INSTANCE_DATA
+  cat INSTANCE_DATA
+}
+
+create_old_stack
 
 exit 0
