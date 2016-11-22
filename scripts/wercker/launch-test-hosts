@@ -4,8 +4,8 @@ SCRIPTS_DIR=$WERCKER_ROOT/scripts
 
 set -o errexit
 
-BRANCH=${BRANCH:-$WERCKER_GIT_BRANCH}
-REVISION=${REVISION:-$WERCKER_GIT_COMMIT}
+BRANCH=${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
+REVISION=${REVISION:-$(git rev-parse HEAD)}
 
 function create_old_stack() {
   declare options=$($SCRIPTS_DIR/test-instance/get-options)
@@ -16,6 +16,27 @@ function create_old_stack() {
   cat INSTANCE_DATA
 }
 
+function create_new_stack() {
+  curl --silent --verbose \
+       --request POST \
+       --header "X-Cebeci-Test-Env-Auth: $CEBECI_TEST_ENV_AUTH_PASSWORD" \
+       --data "sha=$REVISION" --data "branch=$BRANCH" \
+       http://cebeci.koding.com/cebeci/api/env/test/create |
+    jq -r '.testId, .ip, .hostname' > info
+
+  read testId ip hostname < info
+  echo $testId > test_id
+  echo $ip > ip
+  echo $hostname > hostname
+}
+
 create_old_stack
+
+for i in $(seq 58); do
+  mkdir -p $TEST_ENV_DIR/$i
+  pushd $TEST_ENV_DIR/$i
+  create_new_stack
+  popd
+done
 
 exit 0
