@@ -10,7 +10,11 @@ fi
 
 SCRIPTS=$(dirname $0)/..
 
-while read INSTANCE_DATA; do
-  $SCRIPTS/test-instance/unprotect $INSTANCE_DATA
-  $SCRIPTS/test-instance/terminate $INSTANCE_DATA
-done < $INSTANCE_DATA_FILE
+function destroy_old_stack() {
+  while read INSTANCE_DATA; do
+    $SCRIPTS/test-instance/unprotect $INSTANCE_DATA
+    $SCRIPTS/test-instance/terminate $INSTANCE_DATA
+  done < $INSTANCE_DATA_FILE
+}
+
+destroy_old_stack
