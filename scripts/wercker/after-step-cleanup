@@ -17,4 +17,18 @@ function destroy_old_stack() {
   done < $INSTANCE_DATA_FILE
 }
 
+function destroy_new_stack() {
+  declare testId=$(cat test_id)
+  curl --silent --verbose \
+       --request POST \
+       --header "X-Cebeci-Test-Env-Auth: $CEBECI_TEST_ENV_AUTH_PASSWORD" \
+       --data "testId=`cat test_id`" \
+       http://cebeci.koding.com/cebeci/api/env/test/terminate
+}
+
 destroy_old_stack
+for dir in $(ls -1 $TEST_ENV_DIR); do
+  pushd $TEST_ENV_DIR/$dir
+  destroy_new_stack
+  popd
+done
